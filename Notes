@@ -1,0 +1,227 @@
+# Official Appian Documentation 
+- https://docs.appian.com/suite/help/22.4/
+
+## Remember This For Later
+- [Custom Data Types](https://docs.appian.com/suite/help/22.4/Custom_Data_Types.html)
+- Adding .data to a query will allow you to get just the data itself
+- Screen readers are not able to announce richtext styles
+- "Rule inputs" are variables that pass data into or out of an interface.
+- Use a "Primitive Data Type" to store system data types, such as Number (Integer) or Boolean.
+- Use a "Record type" to display record data in an interface, like in the summary view of a record.
+
+
+## User Interface Stuff
+- "Patterns" provide a combination of components and dynamic expressions to achieve common user-interface designs.
+- "Side by side" is the best layout when you need to display several small details grouped together.
+- The "configuration pane" is used to configure components and rule inputs and view local variables.
+- "Expression mode" reveals the full interface's expression allowing you to edit expressions as needed.
+- An interface inherits the security of its parent folder. To view or make any changes to the object security, go to Settings, then Security.
+- Like other Appian objects, use application groups rather than individual users to configure security because users can be deactivated. 
+- If a user does not have at least viewer permissions, they will not be able to see the interface in the deployed application.
+- When you’re using an interface to add or update record data, it’s most useful to use a record type as a rule input when your record type uses a database as the source and has data sync enabled.
+- Typically, the display value is configured using a rule input.
+- To save data that users enter into the form, configure the Save Input To field. Typically, you'll use a rule input field to map the value to a data field in the record type
+- You can also use an expression to specify the condition for triggering the invalid value message. For example, you can write an expression so that the date entered in a date field is not in the future.
+- You see a pink highlight that indicates where you are inserting a component on the canvas.
+- To build your interface, first use layouts to organize the content, then add components to display data. Then, use the Component Configuration pane to make changes to the configuration as needed—for example, to update the labels, add conditional visibility, or save data to a rule input.
+- "local variables" are similar to "rule inputs", except local variables do not pass data into and out of the interface.
+- "Local variables" define and store temporary values within an expression. They are useful when you only need values within a particular expression.
+- A "local variable" will hold a value temporarily, until you save it. For example, you can save the value of a local variable into a rule input.
+- "Local variables" can be defined by other variables or left undefined
+- The "a!localVariables()" function needs to wrap around the entire interface’s expression.
+- There are two main methods for testing, depending on the function of your interface: manual testing (for editable interfaces) or using test cases via the Test Inputs pane (for read-only interfaces).
+- To ensure you dont mess up anything while testing, click the preview tab
+- Check performance tab when testing as well
+
+
+## Questions
+
+
+## Remember These Functions
+- a!queryRecordType()
+- a!aggregationFields()
+- a!grouping()
+- a!measure()
+- a!pagingInfo()
+- a!sortInfo()
+- a!relatedRecordData()
+- a!queryFilter()
+- a!localVariables()
+- a!queryLogicalExpression()
+- union()
+- if()
+
+## Example Queries
+
+### If statement
+```
+    if(todate(ri!vehicle[Vehicle.lastMaintenanceDate]) > today(),
+    "Enter a date before today.",
+    null())
+```
+
+### Type: Sort and Limit
+```
+a!queryRecordType(
+  recordType: 'recordType!{058be2d0-0acb-453f-93ac-4c9f650cf004}Vehicle',
+  fields: {
+    'recordType!{058be2d0-0acb-453f-93ac-4c9f650cf004}Vehicle.relationships.{ed72be21-a335-4715-9c93-5d34619bd675}maintenance.fields.{36d0652b-4371-41cb-8714-3324161cf92d}cost'
+  },
+  pagingInfo: a!pagingInfo(
+    startIndex: 1,
+    batchSize: 10,
+    sort: {
+      a!sortInfo(
+        field: 'recordType!{058be2d0-0acb-453f-93ac-4c9f650cf004}Vehicle.fields.{843e6755-29db-4e56-b606-9bdbec44a31c}mileage',
+        ascending: true
+      )
+    }
+  )
+).data
+
+```
+### Get unique list of results
+```
+a!localVariables(
+  local!data: a!queryRecordType(
+    recordType: 'recordType!{058be2d0-0acb-453f-93ac-4c9f650cf004}Vehicle',
+    fields: 'recordType!{058be2d0-0acb-453f-93ac-4c9f650cf004}Vehicle.fields.{1a2c6566-65e6-4a1a-81be-c5279df93e58}make',
+    pagingInfo: a!pagingInfo(startIndex: 1, batchSize: 100)
+  ).data['recordType!{058be2d0-0acb-453f-93ac-4c9f650cf004}Vehicle.fields.{1a2c6566-65e6-4a1a-81be-c5279df93e58}make'],
+  union(local!data, local!data)
+)
+```
+Additional Notes: Remember to add something like union() to end of a!localVariables so that it knows how to render the resulting data
+
+
+### An example of an interface
+```
+{
+  a!cardLayout(
+    contents: {
+      a!sideBySideLayout(
+        items: {
+          a!sideBySideItem(
+            item: a!richTextDisplayField(
+              label: "Rich Text",
+              labelPosition: "COLLAPSED",
+              value: {
+                a!richTextItem(
+                  text: {
+                    "Acme Automobile "
+                  },
+                  size: "LARGE"
+                ),
+                char(10),
+                a!richTextItem(
+                  text: {
+                    "Fleet and Maintenance Statistics"
+                  },
+                  color: "#b7b7b7",
+                  size: "MEDIUM_PLUS"
+                )
+              },
+              align: "LEFT"
+            ),
+            width: "3X"
+          ),
+          a!sideBySideItem(
+            item: a!richTextDisplayField(
+              label: "Rich Text",
+              labelPosition: "COLLAPSED",
+              value: {
+                a!richTextIcon(
+                  icon: "car",
+                  size: "LARGE_PLUS"
+                )
+              },
+              align: "RIGHT"
+            ),
+            width: "1X"
+          ),
+          a!sideBySideItem(
+            item: a!richTextDisplayField(
+              label: "Rich Text",
+              labelPosition: "COLLAPSED",
+              value: {
+                a!richTextIcon(
+                  icon: "bar-chart",
+                  color: "#cc0000",
+                  size: "LARGE_PLUS"
+                )
+              },
+              align: "RIGHT"
+            ),
+            width: "MINIMIZE"
+          )
+        },
+        alignVertical: "MIDDLE"
+      )
+    },
+    height: "AUTO",
+    style: "#1C4587",
+    marginBelow: "STANDARD"
+  ),
+  a!sectionLayout(
+    label: "Fleet Data",
+    contents: {
+      a!columnsLayout(
+        columns: {
+          a!columnLayout(
+            contents: rule!AA_VehiclesbyMakeStatusColumnChart()
+          ),
+          a!columnLayout(
+            contents: rule!AA_VehiclesAddedbyRegistrar(lockCount: true()),
+            width: "NARROW_PLUS"
+          )
+        }
+      )
+    },
+    divider: "BELOW"
+  ),
+  a!sectionLayout(
+    label: "",
+    contents: {
+      a!columnsLayout(
+        columns: {
+          a!columnLayout(
+            contents: rule!AA_VehiclesByAgePieChart()
+          ),
+          a!columnLayout(
+            contents: rule!AA_VehiclesAddedByMonth()
+          )
+        }
+      )
+    },
+    divider: "BELOW"
+  ),
+  a!sectionLayout(
+    label: "Fleet Inventory by Status",
+    contents: {rule!AA_FleetbyStatusDrillablePieChart()}
+  ),
+  a!sectionLayout(
+    label: "Vehicle KPIs",
+    contents: {
+      a!columnsLayout(
+        columns: {
+          a!columnLayout(
+            contents: {
+              a!gaugeField(
+                labelPosition: "COLLAPSED",
+                percentage: rule!QYD_GetVehiclesAddedThisMonth(),
+                primaryText: a!gaugePercentage()
+              )
+            }
+          ),
+          a!columnLayout(
+            contents: {}
+          ),
+          a!columnLayout(
+            contents: {}
+          )
+        }
+      )
+    }
+  )
+ }
+```
