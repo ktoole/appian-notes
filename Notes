@@ -11,6 +11,10 @@
 
 
 ## User Interface Stuff
+- The side-by-side layout will ensure
+that the related Make and Model fields stay next to each other on a narrower screen.
+Keep in mind that columns layouts are flattened into a single column on mobile devices.
+If you need certain related fields to stay together, use side-by-side layouts.
 - "Patterns" provide a combination of components and dynamic expressions to achieve common user-interface designs.
 - "Side by side" is the best layout when you need to display several small details grouped together.
 - The "configuration pane" is used to configure components and rule inputs and view local variables.
@@ -32,9 +36,32 @@
 - There are two main methods for testing, depending on the function of your interface: manual testing (for editable interfaces) or using test cases via the Test Inputs pane (for read-only interfaces).
 - To ensure you dont mess up anything while testing, click the preview tab
 - Check performance tab when testing as well
+- Place A1localvariables above the ui form/interface in expression mode and then use the ui form/interface as the result parameter. Example is below
+- In some cases, you may want to only display a component based on a condition.
+  ● To do this, navigate to the Visibility setting in the Component Configuration pane,
+then select Only Show When. Use the Expression Editor to write an expression.
+  ● For example, imagine that you want to display a Comments box if a vehicle’s mileage is
+above 150,000 miles. You can do this by adding the expression
+ri!vehicle.vehicleMileage > 150000. This expression determines whether the
+Comments component is displayed on the interface or not. When set to false, the
+component is hidden and not evaluated. The default is set to true.
+- a!save(ri!vehicle.vehicleDateAdded, today())
+- As you plan your first application, keep in mind that interfaces can be built as reusable
+blocks. Simply create a reusable interface, and then call it from other interfaces in your
+app. For example, the read-only vehicle details that you just added to the supervisor
+approval form could have been set up as its own interface. To call a reusable interface
+from a different interface, use rule! and the name of the interface you want to reuse
 
 
-## Questions
+## Troubleshooting
+- If you are trying to view an interface and it just keeps saying that you can't cast it as a record type, review "Views and Header" Views > Interface section to make sure that you are including "rv!record" since that references the current record.  Full example is as follows:
+  - rule!AX_VehicleSummary(vehicle: rv!record)
+- Could not display interface. Please check definition and inputs.
+Interface Definition: Expression evaluation error at function a!imageField [line 60]: The image at index 1 in an image gallery component [label=""] has an invalid value for "document". "document" must not be null.
+  - This occurs because the value for the document
+cannot be null. Let’s fix this by adding test values to this interface. Click Test, and type
+the following expression into the vehicle row: rule!AX_GetVehicleByID(1). Click
+the Set as default test values link, and then click Test Interface.
 
 
 ## Remember These Functions
@@ -50,14 +77,208 @@
 - a!queryLogicalExpression()
 - union()
 - if()
+- a!isNullOrEmpty()
+- today()
+
 
 ## Example Queries
+
+### If statement that checks if date is less than another date
+```
+if(todate(ri!vehicle.vehicleNextMaintenanceDate) <
+todate(ri!vehicle.vehicleLastMaintenanceDate), “The next
+maintenance date must be after the last maintenance date.”,
+null)
+```
 
 ### If statement
 ```
     if(todate(ri!vehicle[Vehicle.lastMaintenanceDate]) > today(),
     "Enter a date before today.",
     null())
+```
+
+### Example of using local variables along with an interface definition
+```
+a!localVariables(
+  local!category: rule!AA_GetReferenceData(type: "Category"),
+  local!status: rule!AA_GetReferenceData(type: "Status"),
+  local!condition: rule!AA_GetReferenceData(type: "Condition"),
+a!formLayout(
+  label: "Add Vehicle",
+  contents: {
+    a!columnsLayout(
+      columns: {
+        a!columnLayout(
+          contents: {
+            a!sideBySideLayout(
+              items: {
+                a!sideBySideItem(
+                  item: a!textField(
+                    label: "Make",
+                    labelPosition: "ABOVE",
+                    value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{ae08763a-36da-4eae-9d53-86fb03dc8567}vehicleMake'],
+                    saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{ae08763a-36da-4eae-9d53-86fb03dc8567}vehicleMake'],
+                    characterLimit: 55,
+                    required: false
+                  )
+                ),
+                a!sideBySideItem(
+                  item: a!textField(
+                    label: "Model",
+                    labelPosition: "ABOVE",
+                    value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{a658f7c9-98e1-4203-ab4d-5578be4089ba}vehicleModel'],
+                    saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{a658f7c9-98e1-4203-ab4d-5578be4089ba}vehicleModel'],
+                    characterLimit: 55,
+                    required: false
+                  )
+                )
+              }
+            ),
+            a!integerField(
+              label: "Year",
+              labelPosition: "ABOVE",
+              value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{6dca6293-1ee8-4fe3-97e6-eb30bdca13a8}vehicleYear'],
+              saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{6dca6293-1ee8-4fe3-97e6-eb30bdca13a8}vehicleYear'],
+              required: false
+            ),
+            a!textField(
+              label: "Vin",
+              labelPosition: "ABOVE",
+              value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{73817c69-6111-40bf-a20f-d03cbb06dd19}vehicleVin'],
+              saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{73817c69-6111-40bf-a20f-d03cbb06dd19}vehicleVin'],
+              characterLimit: 17,
+              required: false
+            ),
+            a!integerField(
+              label: "Mileage",
+              labelPosition: "ABOVE",
+              value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{091dfe85-2bbc-401e-804b-5b530c936941}vehicleMileage'],
+              saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{091dfe85-2bbc-401e-804b-5b530c936941}vehicleMileage'],
+              required: false
+            ),
+            a!textField(
+              label: "Color",
+              labelPosition: "ABOVE",
+              value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{6a96ed1a-b65d-4651-b067-8587e31d3969}vehicleColor'],
+              saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{6a96ed1a-b65d-4651-b067-8587e31d3969}vehicleColor'],
+              characterLimit: 55,
+              required: false
+            )
+          }
+        ),
+        a!columnLayout(
+          contents: {
+            a!sideBySideLayout(
+              items: {
+                a!sideBySideItem(
+                  item: a!dateField(
+                    label: "Date Added",
+                    labelPosition: "ABOVE",
+                    value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{d29de632-ae1d-4bea-9ef1-745c9b0894f1}vehicledateadded'],
+                    saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{d29de632-ae1d-4bea-9ef1-745c9b0894f1}vehicledateadded'],
+                    required: false
+                  )
+                ),
+                a!sideBySideItem(
+                  item: a!dateField(
+                    label: "Next Maintenance",
+                    labelPosition: "ABOVE",
+                    value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{8e10acd2-07f1-4825-aaf1-ef25c4263c57}vehiclenextmaintenancedate'],
+                    saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{8e10acd2-07f1-4825-aaf1-ef25c4263c57}vehiclenextmaintenancedate'],
+                    required: false,
+                    validations: if(todate(ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{8e10acd2-07f1-4825-aaf1-ef25c4263c57}vehiclenextmaintenancedate']) <
+todate(ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{b72890d6-147d-4aaf-a3cf-df4bd5914937}vehicleLastMaintenanceDate']), "The next 
+maintenance date must be after the last maintenance date.",
+                    null)
+                  
+                  )
+                ),
+                a!sideBySideItem(
+                  item: a!dateField(
+                    label: "Last Maintenance",
+                    labelPosition: "ABOVE",
+                    value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{b72890d6-147d-4aaf-a3cf-df4bd5914937}vehicleLastMaintenanceDate'],
+                    saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{b72890d6-147d-4aaf-a3cf-df4bd5914937}vehicleLastMaintenanceDate'],
+                    required: false
+                  )
+                )
+              }
+            ),
+            a!fileUploadField(
+              label: "Image",
+              labelPosition: "ABOVE",
+              target: cons!AX_DOCUMENTS_FOLDER_POINTER,
+              maxSelections: 1,
+              value: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{acefde52-ba7c-465e-9503-f1428ee06a70}vehicleimage'],
+              saveInto: ri!vehicle['recordType!{1999b261-4ee1-4bda-bf10-666359b9d5d1}AX Vehicle.fields.{acefde52-ba7c-465e-9503-f1428ee06a70}vehicleimage'],
+              required: true,
+              validations: {}
+            ),
+            a!dropdownField(
+              label: "Category",
+              labelPosition: "ABOVE",
+              placeholder: "--- Select a Value ---",
+              choiceLabels: {"Option 1", "Option 2", "Option 3", "Option 4",
+                              "Option 5", "Option 6", "Option 7", "Option 8",
+                              "Option 9", "Option 10", "Option 11", "Option 12"},
+              choiceValues: {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+              saveInto: {},
+              searchDisplay: "AUTO",
+              validations: {}
+            ),
+            a!dropdownField(
+              label: "Status",
+              labelPosition: "ABOVE",
+              placeholder: "--- Select a Value ---",
+              choiceLabels: {"Option 1", "Option 2", "Option 3", "Option 4",
+                              "Option 5", "Option 6", "Option 7", "Option 8",
+                              "Option 9", "Option 10", "Option 11", "Option 12"},
+              choiceValues: {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+              saveInto: {},
+              searchDisplay: "AUTO",
+              validations: {}
+            ),
+            a!dropdownField(
+              label: "Condition",
+              labelPosition: "ABOVE",
+              placeholder: "--- Select a Value ---",
+              choiceLabels: {"Option 1", "Option 2", "Option 3", "Option 4",
+                              "Option 5", "Option 6", "Option 7", "Option 8",
+                              "Option 9", "Option 10", "Option 11", "Option 12"},
+              choiceValues: {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+              saveInto: {},
+              searchDisplay: "AUTO",
+              validations: {}
+            )
+          }
+        )
+      }
+    )
+  },
+  buttons: a!buttonLayout(
+    primaryButtons: {
+      a!buttonWidget(
+        label: "Submit",
+        submit: true,
+        style: "PRIMARY",
+        validate: true
+      )
+    },
+    secondaryButtons: {
+      a!buttonWidget(
+        label: "Cancel",
+        value: true,
+        saveInto: ri!cancel,
+        submit: true,
+        style: "NORMAL",
+        validate: false
+      )
+    }
+  )
+)
+)
+
 ```
 
 ### Type: Sort and Limit
