@@ -52,6 +52,93 @@ app. For example, the read-only vehicle details that you just added to the super
 approval form could have been set up as its own interface. To call a reusable interface
 from a different interface, use rule! and the name of the interface you want to reuse
 
+## Process Modeling
+- Appian applications are record centric
+- Plan your app around record types and record actions
+- Configure tasks to expire or get reassigned after a time of inactivity
+- Process models do not inherit security from their parent folders. They should be secured individually in groups
+- Always use groups to configure security 
+- Administrators and viewers are the key security permission groups
+- The main advantage of rule inputs is that they can easily pass data between interfaces and process models
+  - Rule INputs > Process Parameters > Process Variables
+- A good practice is to make the process model display name dynamic so that it's easy to differentiate between prod and non prod process model instances
+- Click Refresh. If blue highlight happens, that means no issues
+- When debugging, check process details to ensure your data come in correctly
+- Process parameters are variables that receive values at the beginning of the process and transfer data between nodes
+- Save and publish a process model befroe debugging
+- Dont forget to debug! 
+- "Node inputs and outputs" is used interchangeably with activity class parameters
+- The "Save Into" field is only used with user input tasks
+- "pv!" is for process variables
+- Make sure to debug after creating each node
+- the user inptu tasks allows you to assign form based tasks to users
+- use the form tab to add an interface 
+- use the data tab to map node inputs to process variables
+  - use "value" field for displaying datat to users
+  - use "save into" field to flow the new data into the process
+- Always use exceptions and escalations to handle tasks that havent been handled on time
+- AFter you add a form and map the interface's rule inputs to node inputs, the new data wont be saved into process variabels automatically.  You will need to add additional configurations in the data tab
+- To configure a user input task, you should add the interface, configure variabels to pass values between the form and the process, assign the task to a group of users, and configure a dynamic display name
+- You should configure the "value" field to display data from the process in the form
+- Four types of Gateways
+  - AND
+    - All paths execute.
+    - there is not if condition
+    - you can also use an AND gateway to collect multiple nodes at the same time
+  - COMPLEX
+    - process needs to selectively accept incoming paths and evaluate conditions to detrermine which path should continue 
+  - XOR 
+    - used most frequently
+    - SPLITS SINGLE INCOMING PATH INTO MULTIPLE PATHS BASED ON CONDITION YOU DEFINE
+  - OR    
+    - does have an if condition
+    - only tasks that meet the condition will execute
+- to configure gateway, use deciion tab and setup process variables
+- SCript Task allows you to create an automated activity using queries
+  - typically configured using node outputs located under data tab
+- pp! is process property that appian uses to store info about process user
+- Smart Service
+  - Write REcords Smart Service allow CRUD operations with database and data syncing
+    - write service can only be used with record types that get data from datatable and have data sync enabled
+- "Run as whoever designed this model" allows elevated writing priveledges
+- script tasks are used for automated activities liek capturing metadata that user wouldnt type into form. typically configured using node outputs
+- use output tab to output primary key back to process model
+- Script Tasks are configurd using the Outputs tab only
+- When conifugring the Write Records Smart Service, you need to define gateways in the Outputs Tab and you need to pass primary key value back into the process using the Outputs Tab
+- Start Processes and Subprocesses
+  - main difference is the memory usage
+  - start process always run on engine with lower memory usage
+  - subprocess can run both sync or async from parent
+  - start process can only run async
+  - if process has process that is tricky to debug, just use subprocess instead of start process
+  - common use cases for processes
+    - multiple touches or approvals from users
+    - easier to debug if integration steps are separated
+    - can isolate steps thru using timers or rule events
+    - can create reusable generic steps
+  - To configure a subprocess, add a subprocess node to the main process, and then use the SEtup tab to select the process model and whether to chose async or sync
+  - Troubleshooting Process Models
+    - Always check variables tab in process details after debugging a node. this wont display an error 
+    - make sure all editabel interfaces have values inthe "display to" field and the save "selection to" field
+    - Check Cloud Databse  in same menu where Appian Desinger is to check that data is in database correclty
+    - When debgugging process model issues, start by going to the "Monitor view"
+    - Proces ACtivity lets you find process instances. having dynamic display name helps too
+    - Process ACtivity Tab and VAriabels Tab in process modelre can be used for tourbleshooting process models
+  - surface from within record type or standalone action page - referring to process models
+  - surface it based on customers needs
+  - when configuring a related action , use the context field to pass the values into the process model's paramters
+  - Using the Generate Record Action button in the record type, you can quickly generate record actions from the record type for three common use cases: adding a record, updating the record, and deleting the record
+  - Make a process available to business users using record actions or related actions when they work in the context of a record list
+  - To manually conifugre a related action, you will Configure New Action Manually; conifgure the context; go to the View and Headers tab to make the related action visible; and create the record type page on the site
+  - Note that you can select to view a process model using the Analyst or Designer views. The
+process Analyst View allows you to draft high-level diagrams, while the process Designer View
+allows you to configure the nodes and publish process models. Use the Analyst View when
+drafting a process, for example if you want to share a process diagram with stakeholders or
+developers. This will suppress any errors and validation messages.
+- After submitting test form in process modeler, clicking refresh will advance the process to the next node
+
+
+
 
 ## Troubleshooting
 - If you are trying to view an interface and it just keeps saying that you can't cast it as a record type, review "Views and Header" Views > Interface section to make sure that you are including "rv!record" since that references the current record.  Full example is as follows:
